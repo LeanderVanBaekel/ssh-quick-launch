@@ -1,6 +1,8 @@
 import curses
 import subprocess
 import sys
+import threading
+from typing import Optional
 from pathlib import Path
 
 from .config import load_menu
@@ -36,15 +38,33 @@ def update_available() -> bool:
         return False
 
 
+class AsyncUpdateCheck:
+    """Runs update_available() in a separate thread."""
+
+    def __init__(self) -> None:
+        self.result: Optional[bool] = None
+        self._done = threading.Event()
+        self._thread = threading.Thread(target=self._check, daemon=True)
+
+    def start(self) -> None:
+        self._thread.start()
+
+    def _check(self) -> None:
+        self.result = update_available()
+        self._done.set()
+
+    def done(self) -> bool:
+        return self._done.is_set()
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
     if argv and argv[0] in {"--update", "update", "u"}:
         self_update()
-    if update_available():
-        print(
-            "⇪  Er is een update beschikbaar. Voer 's --update' uit om bij te werken."
-        )
+
+    updater = AsyncUpdateCheck()
+    updater.start()
     if argv and argv[0] in {"--version", "-V"}:
         ver = subprocess.check_output(
             ["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True
@@ -81,6 +101,11 @@ def main(argv=None):
     else:
         curses.wrapper(
             lambda s: main_menu(s, ssh_options, host_extras, HEADER_TXT, EXIT_CAT)
+        )
+
+    if updater.done() and updater.result:
+        print(
+            "⇪  Er is een update beschikbaar. Voer 's --update' uit om bij te werken."
         )
 
 

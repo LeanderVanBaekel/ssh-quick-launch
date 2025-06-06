@@ -50,7 +50,8 @@ Start het programma met:
 
 Gebruik `./s --update` om de laatste versie binnen te halen. Met `./s --version`
 bekijk je de huidige git-revisie. Bij het opstarten controleert het programma
-automatisch of er een nieuwe versie beschikbaar is en geeft dan een melding.
+nu op de achtergrond of er een nieuwe versie beschikbaar is. Zodra de controle
+is afgerond krijg je een melding.
 
 Navigatie in het menu:
 
