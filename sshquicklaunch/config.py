@@ -77,3 +77,89 @@ def load_menu(cfg: str = "~/.ssh/config"):
             user = m.group(1).strip()
     flush()
     return dict(menu), dict(extras)
+
+
+def config_has_menu(cfg: str = "~/.ssh/config") -> bool:
+    """Return True if the config file contains any ``# MENU:`` tags."""
+    path = Path(os.path.expanduser(cfg))
+    if not path.exists():
+        return False
+    try:
+        with path.open() as fh:
+            return any(MENU_LINE.match(ln) for ln in fh)
+    except OSError:
+        return False
+
+
+def format_config(cfg: str = "~/.ssh/config") -> None:
+    """Reformat the SSH config so ``load_menu`` can parse it.
+
+    A backup named ``config.backup`` will be created in the same directory.
+    """
+    path = Path(os.path.expanduser(cfg))
+    if not path.exists():
+        raise FileNotFoundError(cfg)
+    backup = path.with_name("config.backup")
+    with path.open() as fh:
+        lines = fh.readlines()
+    # create backup
+    with backup.open("w") as fh:
+        fh.writelines(lines)
+
+    new_lines = []
+    i = 0
+    menu_lines: list[str] = []
+    while i < len(lines):
+        ln = lines[i]
+        if MENU_LINE.match(ln):
+            menu_lines.append(ln.rstrip("\n"))
+            i += 1
+            continue
+        m = HOST_RE.match(ln)
+        if not m:
+            new_lines.extend(l + "\n" for l in menu_lines)
+            menu_lines.clear()
+            new_lines.append(ln)
+            i += 1
+            continue
+        aliases = m.group(1).split()
+        block = []
+        i += 1
+        while i < len(lines) and lines[i].strip() and not HOST_RE.match(lines[i]) and not MENU_LINE.match(lines[i]):
+            block.append(lines[i].rstrip("\n"))
+            i += 1
+        while i < len(lines) and not lines[i].strip():
+            i += 1
+        for alias in aliases:
+            new_lines.extend(l + "\n" for l in menu_lines)
+            new_lines.append(f"Host {alias}\n")
+            new_lines.extend(l + "\n" for l in block)
+            new_lines.append("\n")
+        menu_lines.clear()
+    with path.open("w") as fh:
+        fh.writelines(new_lines)
+
+
+def add_connection(cfg: str = "~/.ssh/config") -> None:
+    """Interactively append a new connection to the SSH config."""
+    path = Path(os.path.expanduser(cfg))
+    cat = input("Categorie: ").strip() or "Default"
+    alias = input("Alias (Host): ").strip()
+    host = input("HostName: ").strip()
+    user = input("User (optioneel): ").strip()
+    label = input("Label (enter voor alias): ").strip() or alias
+    custom = input("Custom command (optioneel): ").strip()
+
+    menu_line = f"# MENU: {cat} | {label}"
+    if custom:
+        menu_line += f" | {custom}"
+    parts = [menu_line, f"Host {alias}", f"    HostName {host}"]
+    if user:
+        parts.append(f"    User {user}")
+    parts.append("")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a") as fh:
+        for l in parts:
+            fh.write(l + "\n")
+

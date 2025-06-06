@@ -5,7 +5,12 @@ import threading
 from typing import Optional
 from pathlib import Path
 
-from .config import load_menu
+from .config import (
+    load_menu,
+    config_has_menu,
+    format_config,
+    add_connection,
+)
 from .menu import command_menu, main_menu
 from .ui import setup_colors
 
@@ -60,6 +65,14 @@ class AsyncUpdateCheck:
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
+    if argv and argv[0] in {"--format-config", "format-config"}:
+        format_config()
+        print("Config geformatteerd. Backup opgeslagen als 'config.backup'.")
+        return 0
+    if argv and argv[0] in {"--add", "add"}:
+        add_connection()
+        print("Connectie toegevoegd aan ~/.ssh/config")
+        return 0
     if argv and argv[0] in {"--update", "update", "u"}:
         self_update()
 
@@ -74,6 +87,11 @@ def main(argv=None):
 
     ssh_options, host_extras = load_menu()
     if not ssh_options:
+        if config_has_menu():
+            sys.exit(
+                "Config bevat menutags, maar de structuur wordt niet herkend. "
+                "Voer 's --format-config' uit."
+            )
         sys.exit("Geen menutags gevonden in ~/.ssh/config")
 
     ALIASES = {"dev": "develop", "stag": "staging", "prod": "production"}

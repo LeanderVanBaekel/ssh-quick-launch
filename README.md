@@ -38,6 +38,13 @@ Optioneel kun je een derde veld opgeven om een custom SSH-commando aan het subme
 
 Alle `# MENU:`-regels tot aan de volgende lege regel of `Host`-sectie horen bij dezelfde host.
 
+Heb je al een bestaande `~/.ssh/config` met meerdere aliassen per `Host`-regel?
+Voer dan `s --format-config` uit om het bestand te herstructureren. Hierbij
+wordt een backup gemaakt als `config.backup`.
+
+Nieuwe verbindingen kun je eenvoudig toevoegen met `s --add`. Het script vraagt
+interactief om de gegevens en plaatst de juiste regels onderaan je config.
+
 ## Gebruik
 
 Start het programma met:
@@ -52,6 +59,10 @@ Gebruik `./s --update` om de laatste versie binnen te halen. Met `./s --version`
 bekijk je de huidige git-revisie. Bij het opstarten controleert het programma
 nu op de achtergrond of er een nieuwe versie beschikbaar is. Zodra de controle
 is afgerond krijg je een melding.
+
+Als je config nog niet correct is vormgegeven, kun je `./s --format-config`
+gebruiken om deze automatisch op te schonen. Nieuwe entries voeg je eenvoudig
+toe met `./s --add`.
 
 Navigatie in het menu:
 
