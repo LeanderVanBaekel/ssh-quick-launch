@@ -49,7 +49,8 @@ Start het programma met:
 ### Zelf updaten
 
 Gebruik `./s --update` om de laatste versie binnen te halen. Met `./s --version`
-bekijk je de huidige git-revisie.
+bekijk je de huidige git-revisie. Bij het opstarten controleert het programma
+automatisch of er een nieuwe versie beschikbaar is en geeft dan een melding.
 
 Navigatie in het menu:
 
