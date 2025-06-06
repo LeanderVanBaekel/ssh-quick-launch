@@ -114,11 +114,15 @@ def main(argv=None):
     if len(real) == 1 and len(ssh_options[real[0]]) == 1:
         base = ssh_options[real[0]][0][2]
         curses.wrapper(
-            lambda s: (setup_colors(), s.keypad(True), command_menu(s, base, host_extras, HEADER_TXT))
+            lambda s: (
+                setup_colors(),
+                s.keypad(True),
+                command_menu(s, base, host_extras, HEADER_TXT, updater),
+            )
         )
     else:
         curses.wrapper(
-            lambda s: main_menu(s, ssh_options, host_extras, HEADER_TXT, EXIT_CAT)
+            lambda s: main_menu(s, ssh_options, host_extras, HEADER_TXT, EXIT_CAT, updater)
         )
 
     if updater.done() and updater.result:

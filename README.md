@@ -58,7 +58,8 @@ Start het programma met:
 Gebruik `./s --update` om de laatste versie binnen te halen. Met `./s --version`
 bekijk je de huidige git-revisie. Bij het opstarten controleert het programma
 nu op de achtergrond of er een nieuwe versie beschikbaar is. Zodra de controle
-is afgerond krijg je een melding.
+is afgerond verschijnt een melding in het hoofdmenu en kun je direct de optie
+"Update" selecteren om bij te werken.
 
 Als je config nog niet correct is vormgegeven, kun je `./s --format-config`
 gebruiken om deze automatisch op te schonen. Nieuwe entries voeg je eenvoudig
