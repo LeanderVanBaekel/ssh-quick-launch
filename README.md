@@ -7,6 +7,7 @@
 - Overzichtelijk hoofdmenu waarin hosts per categorie worden weergegeven.
 - Submenu (`c`) met veelgebruikte commando's of zelf gedefinieerde acties.
 - Eenvoudige downloadbrowser (`d`) waarmee je bestanden kunt kopiëren of mappen laten zippen en downloaden.
+- Eenvoudige uploadbrowser (`u`) om lokale bestanden of mappen naar de server te kopiëren of als zip te uploaden.
 - Zoekfilter: geef zoektermen mee op de commandline om het menu te beperken.
 
 ## Configuratie
@@ -56,11 +57,16 @@ Navigatie in het menu:
 - `Enter` logt direct in op de gekozen host.
 - `c` opent het commando-submenu met je eigen en voorgedefinieerde acties.
 - `d` opent de downloadbrowser.
+- `u` opent de uploadbrowser.
 - `q` sluit het programma.
 
 ### Downloadbrowser
 
 Met `d` blader je door mappen op de server en kies je bestanden om te downloaden. Druk opnieuw op `d` op een map om deze eerst te zippen en vervolgens te downloaden.
+
+### Uploadbrowser
+
+Met `u` blader je door lokale mappen om bestanden te uploaden. Druk `d` op een map om deze te zippen en naar de server te kopiëren.
 
 ### Zoekfilter
 
