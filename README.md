@@ -71,7 +71,7 @@ Geef één of meerdere termen mee bij het starten om het menu te filteren. Enkel
 - Python 3
 - `ssh` en `scp` moeten beschikbaar zijn in je PATH
 
-### Installatie
+## Installatie
 
 1. Controleer of `~/bin` in je `PATH` staat:
 
@@ -86,15 +86,24 @@ Geef één of meerdere termen mee bij het starten om het menu te filteren. Enkel
    source ~/.bashrc  # of source ~/.zshrc
    ```
 
-2. Zorg dat de map bestaat en clone de repository:
+2. Zorg dat de map bestaat
 
    ```bash
    mkdir -p ~/bin
+   ```
+   
+3. clone de repository op de plek waar je het wilt hebben, bijvoorbeeld in `~/src/ssh-quick-launch`:
+
+   ```bash
    git clone <repository-url> ~/src/ssh-quick-launch
+   ```
+
+4. Navigeer naar de map waar de repository is gekloond en maak het script uitvoerbaar:
+   ```bash
    cd ~/src/ssh-quick-launch
    chmod +x s
    ln -s "$PWD/s" ~/bin/s
    ```
 
-   Dankzij de symlink kun je overal `s` uitvoeren en blijft `s --update` werken.
+Dankzij de symlink kun je overal `s` uitvoeren.
 
