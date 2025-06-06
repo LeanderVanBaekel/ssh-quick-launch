@@ -71,5 +71,30 @@ Geef één of meerdere termen mee bij het starten om het menu te filteren. Enkel
 - Python 3
 - `ssh` en `scp` moeten beschikbaar zijn in je PATH
 
-Installeer door het script `s` uitvoerbaar te maken en ergens in je PATH te plaatsen, bijvoorbeeld `~/bin/`.
+### Installatie
+
+1. Controleer of `~/bin` in je `PATH` staat:
+
+   ```bash
+   echo "$PATH" | tr ':' '\n'
+   ```
+
+   Zie je `$HOME/bin` niet staan? Voeg het dan toe in `~/.bashrc` of `~/.zshrc`:
+
+   ```bash
+   echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc  # of ~/.zshrc
+   source ~/.bashrc  # of source ~/.zshrc
+   ```
+
+2. Zorg dat de map bestaat en clone de repository:
+
+   ```bash
+   mkdir -p ~/bin
+   git clone <repository-url> ~/src/ssh-quick-launch
+   cd ~/src/ssh-quick-launch
+   chmod +x s
+   ln -s "$PWD/s" ~/bin/s
+   ```
+
+   Dankzij de symlink kun je overal `s` uitvoeren en blijft `s --update` werken.
 
