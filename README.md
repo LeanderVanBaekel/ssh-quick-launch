@@ -45,6 +45,11 @@ Start het programma met:
 ./s [zoektermen]
 ```
 
+### Zelf updaten
+
+Gebruik `./s --update` om de laatste versie binnen te halen. Met `./s --version`
+bekijk je de huidige git-revisie.
+
 Navigatie in het menu:
 
 - Pijltjestoetsen om categorieën en hosts te kiezen.

@@ -9,6 +9,22 @@ import curses, glob, os, posixpath, re, shlex, subprocess, sys, random, string
 from collections import defaultdict
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent
+
+def self_update() -> None:
+    """Update the repository using git pull and exit."""
+    print("\u231B  Updating ssh-quick-launch …")
+    res = subprocess.run(["git", "-C", str(ROOT), "pull", "--ff-only"])
+    sys.exit(res.returncode)
+
+if len(sys.argv) > 1 and sys.argv[1] in {"--update", "update", "u"}:
+    self_update()
+
+if len(sys.argv) > 1 and sys.argv[1] in {"--version", "-V"}:
+    ver = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True).strip()
+    print("ssh-quick-launch git-rev:", ver)
+    sys.exit(0)
+
 # ── 1. Common commands ──────────────────────────────────────────────────────
 COMMON_COMMANDS = [
     ("Tail Laravel log and follow", "tail -n 400 -f public_html/storage/logs/laravel.log"),
