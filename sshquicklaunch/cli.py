@@ -16,11 +16,35 @@ def self_update() -> None:
     sys.exit(res.returncode)
 
 
+def update_available() -> bool:
+    """Check whether a newer revision exists upstream."""
+    try:
+        subprocess.run(
+            ["git", "-C", str(ROOT), "fetch", "--quiet"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        local = subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True
+        ).strip()
+        remote = subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "@{u}"], text=True
+        ).strip()
+        return local != remote
+    except Exception:
+        return False
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
     if argv and argv[0] in {"--update", "update", "u"}:
         self_update()
+    if update_available():
+        print(
+            "⇪  Er is een update beschikbaar. Voer 's --update' uit om bij te werken."
+        )
     if argv and argv[0] in {"--version", "-V"}:
         ver = subprocess.check_output(
             ["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True
