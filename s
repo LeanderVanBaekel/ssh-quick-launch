@@ -123,7 +123,7 @@ if terms:
 # ── 6. UI helpers ───────────────────────────────────────────────────────────
 EXIT_CAT="Exit (q)"
 ssh_options[EXIT_CAT]=[]
-HEADER_TXT="SSH Quick-Launch | ↑↓ ←→ ENTER=login  c=cmds  d=download  q=quit"
+HEADER_TXT="SSH Quick-Launch | ↑↓ ←→ ENTER=login  c=cmds  d=download  u=upload  q=quit"
 
 def add(win,y,x,s,attr=0):
     h,w=win.getmaxyx()
@@ -241,6 +241,110 @@ def download_browser(stdscr, base):
             input("\nKlaar! Druk op Enter om terug te keren…")
             return
 
+def remote_dir_browser(stdscr, base, start="."):
+    stdscr.keypad(True)
+    path = start; cache = {}; sel = 0
+    while True:
+        if path not in cache:
+            cache[path] = [d for d in remote_ls(base, path) if d.endswith('/')]
+        entries = ['./'] + (['..'] if path not in ('/', '.') else []) + cache[path]
+        sel = max(0, min(sel, len(entries)-1))
+        h,w = stdscr.getmaxyx(); vis = max(1, h-4)
+        offset = min(max(sel-vis+1,0), max(len(entries)-vis,0))
+        stdscr.clear()
+        add(stdscr,0,0,f"Remote map kiezen: {path}",curses.color_pair(HEADER)|curses.A_BOLD)
+        for i,e in enumerate(entries[offset:offset+vis]):
+            y=2+i
+            attr=curses.color_pair(HI)|curses.A_BOLD if (offset+i)==sel else 0
+            add(stdscr,y,2,e,attr)
+        add(stdscr,h-1,2,"Enter=open/kies  q=terug",curses.A_DIM); stdscr.refresh()
+        k=stdscr.getch()
+        if k in (ord('q'), ord('Q')):
+            return None
+        elif k==curses.KEY_UP:
+            sel=(sel-1)%len(entries)
+        elif k==curses.KEY_DOWN:
+            sel=(sel+1)%len(entries)
+        elif k in (curses.KEY_ENTER,10,13):
+            ch=entries[sel]
+            if ch=='./':
+                return path
+            if ch=='..':
+                path=posixpath.dirname(path) or '.'; sel=0
+            else:
+                path=posixpath.join(path,ch.rstrip('/')); sel=0
+
+def upload_browser(stdscr, base):
+    setup_colors(); stdscr.keypad(True); curses.curs_set(0)
+    path="."; cache={}; sel=0
+    while True:
+        if path not in cache:
+            try:
+                items=sorted(os.listdir(path))
+                cache[path]=[i+('/' if os.path.isdir(os.path.join(path,i)) else '') for i in items]
+            except PermissionError:
+                cache[path]=[]
+        entries=list(cache[path])
+        if path not in ('/','.'):
+            entries=['..']+entries
+        sel=max(0,min(sel,len(entries)-1))
+        h,w=stdscr.getmaxyx(); vis=max(1,h-4)
+        offset=min(max(sel-vis+1,0),max(len(entries)-vis,0))
+        stdscr.clear()
+        add(stdscr,0,0,f"Upload-browser: {base} : {path}",curses.color_pair(HEADER)|curses.A_BOLD)
+        for i,e in enumerate(entries[offset:offset+vis]):
+            y=2+i
+            attr=curses.color_pair(HI)|curses.A_BOLD if (offset+i)==sel else 0
+            add(stdscr,y,2,e,attr)
+        add(stdscr,h-1,2,"Enter=open/upload  d=upload dir  q=terug",curses.A_DIM); stdscr.refresh()
+        k=stdscr.getch()
+        if k in (ord('q'),ord('Q')):
+            return
+        elif k==curses.KEY_UP:
+            sel=(sel-1)%len(entries) if entries else 0
+        elif k==curses.KEY_DOWN:
+            sel=(sel+1)%len(entries) if entries else 0
+        elif k in (curses.KEY_ENTER,10,13) and entries:
+            ch=entries[sel]
+            if ch=='..':
+                path=os.path.dirname(path) or '/'; sel=0
+            elif ch.endswith('/'):
+                path=os.path.join(path,ch.rstrip('/')); sel=0
+            else:
+                local_full=os.path.join(path,ch)
+                dest_dir=remote_dir_browser(stdscr, base, '.')
+                if not dest_dir: continue
+                curses.endwin()
+                dest=f"{base.split()[1]}:{posixpath.join(dest_dir,ch)}"
+                cmd=f"scp {shlex.quote(local_full)} {dest}"
+                print(f"Uitvoeren: {cmd}")
+                subprocess.run(cmd, shell=True)
+                return
+        elif k in (ord('d'), ord('D')) and entries:
+            ch=entries[sel]
+            if not ch.endswith('/'):
+                continue
+            local_dir=os.path.join(path, ch.rstrip('/'))
+            dest_dir=remote_dir_browser(stdscr, base, '.')
+            if not dest_dir:
+                continue
+            curses.endwin()
+            rand=''.join(random.choices(string.ascii_lowercase+string.digits,k=6))
+            local_zip=f"/tmp/{os.path.basename(local_dir)}_{rand}.zip"
+            remote_zip=posixpath.join(dest_dir, os.path.basename(local_zip))
+            host=base.split()[1]
+            cmd_zip=f"zip -r {shlex.quote(local_zip)} {shlex.quote(local_dir)}"
+            cmd_scp=f"scp {shlex.quote(local_zip)} {host}:{shlex.quote(remote_zip)}"
+            cmd_rm=f"rm {shlex.quote(local_zip)}"
+            print(f"\n[1/3] Lokaal zippen:\n  {cmd_zip}")
+            subprocess.run(cmd_zip, shell=True)
+            print(f"\n[2/3] Uploaden:\n  {cmd_scp}")
+            subprocess.run(cmd_scp, shell=True)
+            print(f"\n[3/3] Opruimen:\n  {cmd_rm}")
+            subprocess.run(cmd_rm, shell=True)
+            input("\nKlaar! Druk op Enter om terug te keren…")
+            return
+
 # ── 8. c-submenu ───────────────────────────────────────────────────────────
 def command_menu(stdscr, base):
     stdscr.keypad(True)               # ■■■ pijltjes werken
@@ -285,6 +389,8 @@ def command_menu(stdscr, base):
                     break
         elif k in (ord('d'), ord('D')):
             download_browser(stdscr, base)
+        elif k in (ord('u'), ord('U')):
+            upload_browser(stdscr, base)
         elif k in (curses.KEY_ENTER, 10, 13):
             curses.endwin()
             subprocess.run(items[sel][1], shell=True)
@@ -327,6 +433,9 @@ def main_menu(stdscr):
         elif k in (ord('d'),ord('D')) and cats[sel_cat]!=EXIT_CAT:
             base=ssh_options[cats[sel_cat]][sel_opt[sel_cat]][2]
             download_browser(stdscr,base); return
+        elif k in (ord('u'),ord('U')) and cats[sel_cat]!=EXIT_CAT:
+            base=ssh_options[cats[sel_cat]][sel_opt[sel_cat]][2]
+            upload_browser(stdscr,base); return
         elif k in (curses.KEY_ENTER,10,13):
             if cats[sel_cat]==EXIT_CAT: break
             cmd=ssh_options[cats[sel_cat]][sel_opt[sel_cat]][1]
