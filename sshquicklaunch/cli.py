@@ -17,6 +17,20 @@ from .ui import setup_colors
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def show_help() -> None:
+    print(
+        "Gebruik: s [opties] [zoektermen]\n\n"
+        "Opties:\n"
+        "  -h, --help            toon deze hulp\n"
+        "  -V, --version         toon huidige versie (git revisie)\n"
+        "  --update, update, u   werk bij naar de laatste versie\n"
+        "  --add, add            voeg een nieuwe SSH-verbinding toe\n"
+        "  --format-config       herstructureer ~/.ssh/config\n\n"
+        "Zonder opties start het curses-menu. Geef zoektermen mee om het menu\n"
+        "te filteren (bijv. 'dev', 'stag', 'prod')."
+    )
+
+
 def self_update() -> None:
     print("\u231B  Updating ssh-quick-launch …")
     res = subprocess.run(["git", "-C", str(ROOT), "pull", "--ff-only"])
@@ -65,6 +79,9 @@ class AsyncUpdateCheck:
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
+    if argv and argv[0] in {"--help", "-h", "help"}:
+        show_help()
+        return 0
     if argv and argv[0] in {"--format-config", "format-config"}:
         format_config()
         print("Config geformatteerd. Backup opgeslagen als 'config.backup'.")
